@@ -1,7 +1,9 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
 import { getDBStatus } from "./config/db.js";
+import authRoutes from "./route/authRoutes.js";
 
 const app = express();
 
@@ -19,9 +21,12 @@ app.use(
                 ? allowedOrigins[0] || false
                 : allowedOrigins,
         credentials: true,
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "X-CSRF-Token"],
     })
 );
 
+app.use(cookieParser());
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
@@ -38,6 +43,8 @@ app.get("/api/health", (req, res) => {
     });
 });
 
+app.use("/api/auth", authRoutes);
+
 app.use((req, res, next) => {
     const error = new Error(`Route not found: ${req.method} ${req.originalUrl}`);
     error.statusCode = 404;
@@ -51,11 +58,19 @@ app.use((err, req, res, next) => {
 
     let statusCode = err.statusCode || err.status || 500;
     let message = err.message || "Internal server error";
+    const details = err.details || undefined;
 
     if (err instanceof SyntaxError && statusCode === 400 && "body" in err) {
         message = "Invalid JSON payload";
+    } else if (err.code === 11000) {
+        statusCode = 409;
+        message = "Resource already exists";
     } else if (err.name === "ValidationError") {
         statusCode = 400;
+        const firstError = Object.values(err.errors || {})[0];
+        if (firstError?.message) {
+            message = firstError.message;
+        }
     } else if (err.name === "CastError") {
         statusCode = 400;
         message = `Invalid ${err.path}: ${err.value}`;
@@ -68,6 +83,7 @@ app.use((err, req, res, next) => {
     res.status(statusCode).json({
         success: false,
         message,
+        ...(details && { errors: details }),
         ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
     });
 });
