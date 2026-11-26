@@ -3,6 +3,8 @@ import { ProtectedRoute, PublicOnlyRoute } from "./components/RouteGuards";
 import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import WebsiteDetailPage from "./pages/WebsiteDetailPage";
+import WebsitesPage from "./pages/WebsitesPage";
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
 
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/websites" element={<WebsitesPage />} />
+        <Route path="/websites/:id" element={<WebsiteDetailPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

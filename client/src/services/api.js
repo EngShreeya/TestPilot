@@ -89,5 +89,13 @@ export const authApi = {
   logout: () => api.post("/auth/logout"),
 };
 
+export const websiteApi = {
+  list: (params) => api.get("/websites", { params }),
+  getById: (id) => api.get(`/websites/${id}`),
+  create: (payload) => api.post("/websites", payload),
+  update: (id, payload) => api.patch(`/websites/${id}`, payload),
+  remove: (id) => api.delete(`/websites/${id}`),
+};
+
 export default api;
 

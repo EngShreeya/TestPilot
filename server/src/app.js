@@ -4,6 +4,7 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import { getDBStatus } from "./config/db.js";
 import authRoutes from "./route/authRoutes.js";
+import websiteRoutes from "./route/websiteRoutes.js";
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/websites", websiteRoutes);
 
 app.use((req, res, next) => {
     const error = new Error(`Route not found: ${req.method} ${req.originalUrl}`);
